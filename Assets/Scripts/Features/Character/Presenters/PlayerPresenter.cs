@@ -16,8 +16,10 @@ namespace Features.Character.Presenters
             _view = view;
 
             _view.OnMoveInput += _movementModel.Move;
+            _view.OnRunInput += _movementModel.ToggleRunState;
             _view.OnLookInput += _rotationModel.Look;
             _view.OnJumpInput += _movementModel.Jump;
+            
             //_view.OnCrouchInput += HandleCrouch;
         }
         
