@@ -16,9 +16,11 @@ namespace Features.Character.Views
         public Action<Vector2> OnMoveInput;
         public Action<Vector2> OnLookInput;
         public Action OnJumpInput;
+        public Action<bool> OnRunInput;
         public Action OnCrouchInput;
 
         private InputAction _moveAction;
+        private InputAction _runPressAction;
         private InputAction _lookAction;
         private InputAction _jumpAction;
         private InputAction _crouchAction;
@@ -33,11 +35,16 @@ namespace Features.Character.Views
         {
             var playerActionMap = inputActionAsset.FindActionMap("Player");
             _moveAction = playerActionMap.FindAction("Move");
+            _runPressAction = playerActionMap.FindAction("Run");
             _lookAction = playerActionMap.FindAction("Look");
             _jumpAction = playerActionMap.FindAction("Jump");
             _crouchAction = playerActionMap.FindAction("Crouch");
             
             _lookAction.performed += ctx => OnLookInput?.Invoke(ctx.ReadValue<Vector2>());
+            
+            _runPressAction.performed += ctx => OnRunInput?.Invoke(true);
+            _runPressAction.canceled += ctx => OnRunInput?.Invoke(false);
+            
             _jumpAction.performed += ctx => OnJumpInput?.Invoke();
             _crouchAction.performed += ctx => OnCrouchInput?.Invoke();
         }

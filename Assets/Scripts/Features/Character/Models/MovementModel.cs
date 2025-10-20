@@ -1,82 +1,100 @@
 ﻿using Features.Character.Data;
+using Features.Character.Presenters.PlayerStateMachine;
+using Generals.StateMachine;
+using Generals.StateMachine.Condition;
+using Generals.StateMachine.Transition;
 using UnityEngine;
 
 namespace Features.Character.Models
 {
     public class MovementModel
     {
-        private float Gravity => _config.Gravity;
+        private float Gravity => Config.Gravity;
         private float Speed { get; set; }
         private Vector2 XZVelocity { get; set; }
         private float YVelocity { get; set; }
         public bool IsGrounded { get; set; }
-
-        private enum MoveState { Idle, Walking, Sprinting, Crouching, InAir }
-        private MoveState _currentState = MoveState.Idle;
+        
+        public float TargetSpeed { get; set; }
         
         public Vector3 Velocity => new Vector3(XZVelocity.x, YVelocity, XZVelocity.y);
         
-        private readonly MovementConfigSo _config;
+        public readonly MovementConfigSo Config;
+        
+        private readonly StateMachine _moveStateMachine;
+
+        private Vector2 _moveInput;
+
+        private bool _isRunInputPress;
         
         public MovementModel(MovementConfigSo config)
         {
-            _config = config;
+            Config = config;
+            _moveStateMachine = new StateMachine();
+            var idleState = new IdleState(this);
+            var inAirState = new InAirState(this);
+            var landingState = new LandingState(this);
+            var walkState = new WalkState(this);
+            var runState = new RunState(this);
+            
+            _moveStateMachine.AddAnyTransition(new Transition(inAirState, new FunctionCondition(() => !IsGrounded)));
+            _moveStateMachine.AddAnyTransition(new Transition(idleState, new FunctionCondition(() => IsGrounded && _moveInput == Vector2.zero)));
+            
+            _moveStateMachine.AddTransition(inAirState, new Transition(landingState, new FunctionCondition(() => IsGrounded)));
+            
+            _moveStateMachine.AddTransition(landingState, new Transition(idleState, new FunctionCondition(() => _moveInput == Vector2.zero)));
+            _moveStateMachine.AddTransition(landingState, new Transition(walkState, new FunctionCondition(() => _moveInput != Vector2.zero)));
+            
+            _moveStateMachine.AddTransition(idleState, new Transition(walkState, new FunctionCondition(() => _moveInput != Vector2.zero)));
+            _moveStateMachine.AddTransition(walkState, new Transition(runState, new FunctionCondition(() => _moveInput != Vector2.zero && _isRunInputPress)));
+            _moveStateMachine.AddTransition(runState, new Transition(walkState, new FunctionCondition(() => _moveInput != Vector2.zero && !_isRunInputPress)));
+            
+            
+            _moveStateMachine.EnterInitialState(idleState);
         }
         
         public void Move(Vector2 dir)
         {
-            if (!IsGrounded || _currentState == MoveState.InAir) return;
-
-            if (dir == Vector2.zero)
-            {
-                if (_currentState == MoveState.Crouching)
-                    return;
-                
-            }
-                
-            var maxSpeed = _currentState switch
-            {
-                MoveState.Sprinting => _config.RunSpeed,
-                MoveState.Crouching => _config.CrouchSpeed,
-                MoveState.Idle => 0f,
-                MoveState.Walking => _config.WalkSpeed,
-                _ => _config.WalkSpeed
-            };
-
-            if (dir == Vector2.zero)
-            {
-                _currentState = MoveState.Idle;
-            }
-
-            if (Speed < maxSpeed)
-            {
-                Speed = Mathf.Min(Speed + _config.Acceleration * Time.deltaTime, maxSpeed);
-            }
-            else if (Speed > maxSpeed)
-            {
-                Speed = Mathf.Clamp(Speed - _config.Deceleration * Time.deltaTime, 0, maxSpeed);
-            }
-            
-            XZVelocity = dir.normalized * Speed;
+            _moveInput = dir;
         }
 
         public void ToggleCrouch()
         {
-            if (_currentState == MoveState.Crouching)
-            {
-                _currentState = Speed > 0 ? MoveState.Walking : MoveState.Idle;
-            }
+            
         }
 
-        public void Sprint()
+        public void ToggleRunState(bool state)
         {
+            _isRunInputPress = state;
+        }
+
+        // Update speed by grounded state update
+        public void UpdateSpeed()
+        {
+            if (!IsGrounded) return;
             
+            if (Speed < TargetSpeed)
+            {
+                Speed = Mathf.Min(Speed + Config.Acceleration * Time.deltaTime, TargetSpeed);
+            }
+            else if (Speed > TargetSpeed)
+            {
+                Speed = Mathf.Max(Speed - Config.Deceleration * Time.deltaTime, TargetSpeed);
+            }
+
+            var direction = _moveInput;
+            if (_moveInput == Vector2.zero)
+            {
+                direction = XZVelocity;
+            }
+
+            XZVelocity = direction.normalized * Speed;
         }
 
         public void Jump()
         {
             if (!IsGrounded) return;
-            YVelocity = Mathf.Sqrt(_config.JumpHigh * -2f * Gravity);
+            YVelocity = Mathf.Sqrt(Config.JumpHigh * -2f * Gravity);
         }
         
         public void ApplyGravity(float deltaTime)
@@ -92,6 +110,7 @@ namespace Features.Character.Models
 
         public Vector3 CalculateMovement(float deltaTime)
         {
+            _moveStateMachine.Update(deltaTime);
             return Velocity * deltaTime;
         }
     }

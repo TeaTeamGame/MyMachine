@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: PlayerMovementConfig
   m_EditorClassIdentifier: Assembly-CSharp::Features.Character.Data.MovementConfigSo
   <Acceleration>k__BackingField: 10
-  <WalkSpeed>k__BackingField: 3
-  <RunSpeed>k__BackingField: 8
+  <Deceleration>k__BackingField: 15
+  <WalkSpeed>k__BackingField: 5
+  <RunSpeed>k__BackingField: 10
   <CrouchSpeed>k__BackingField: 1.5
-  <JumpHigh>k__BackingField: 2
-  <Gravity>k__BackingField: -29.43
+  <JumpHigh>k__BackingField: 3
+  <Gravity>k__BackingField: -18.4
