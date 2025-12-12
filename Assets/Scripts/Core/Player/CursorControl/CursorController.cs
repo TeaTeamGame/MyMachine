@@ -2,19 +2,23 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace Features.Player.CursorControl
+namespace Core.Player.CursorControl
 {
     public class CursorController : Singleton<CursorController>
     {
         [SerializeField] private PlayerInput playerInput;
         
         private InputAction _showCursorAction;
+        private InputAction _mousePositionAction;
 
         public bool IsShowingCursor => Cursor.visible;
+        public Vector2 CursorPosition => _mousePositionAction.ReadValue<Vector2>();
         
         public void Start()
         {
             _showCursorAction = playerInput.actions["ShowCursor"];
+            _mousePositionAction = playerInput.actions["MousePosition"];
+            
 
             Cursor.visible = false;
             StartControl();

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Features.Player.CameraControl
+namespace Core.Player.CameraControl
 {
     public struct MovementData
     {

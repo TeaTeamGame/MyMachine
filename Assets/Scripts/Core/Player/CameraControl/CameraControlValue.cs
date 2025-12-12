@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Features.Player.CameraControl
+namespace Core.Player.CameraControl
 {
     [CreateAssetMenu(fileName = "CameraControlValue", menuName = "Camera/CameraControlValue", order = 0)]
     public class CameraControlValue : ScriptableObject

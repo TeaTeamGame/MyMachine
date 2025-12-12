@@ -1,10 +1,11 @@
-using Features.Player.CursorControl;
+using Core.CameraSystem;
+using Core.Player.CursorControl;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace Features.Player.CameraControl
+namespace Core.Player.CameraControl
 {
-    public class PlayerCameraController : MonoBehaviour
+    public class CameraController : MonoBehaviour
     {
         [SerializeField] private PlayerInput playerInput;
         
@@ -16,12 +17,12 @@ namespace Features.Player.CameraControl
         private CameraControlValue _cameraControlValue;
         private CameraControlModel _cameraControlModel;
         private bool _isSetup;
-
+        private bool _isEnabled;
+        
         private void Start()
         {
-            var mainCamera = Camera.main;
             _cameraControlValue = CameraControlValue.GetInstance();
-            _cameraControlModel = new CameraControlModel(_cameraControlValue, mainCamera);
+            _cameraControlModel = new CameraControlModel(_cameraControlValue, CameraManager.Instance.MainCamera);
             
             _moveAction = playerInput.actions["Move"];
             _upDownAction = playerInput.actions["UpDown"];
@@ -29,6 +30,11 @@ namespace Features.Player.CameraControl
             _zoomAction = playerInput.actions["Zoom"];
 
             _isSetup = true;
+        }
+
+        public void SetEnabled(bool isEnabled)
+        {
+            _isEnabled = isEnabled;
         }
 
         private void Update()

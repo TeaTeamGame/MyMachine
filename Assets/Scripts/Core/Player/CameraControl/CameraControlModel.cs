@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+﻿using Core.CameraSystem;
+using UnityEngine;
 
-namespace Features.Player.CameraControl
+namespace Core.Player.CameraControl
 {
     public class CameraControlModel
     {
